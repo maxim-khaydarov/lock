@@ -1,14 +1,17 @@
 package ua.mkh.finelock;
 
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
 import android.app.WallpaperManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -16,6 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
@@ -24,15 +28,18 @@ import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -45,14 +52,26 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	public void onAttachedToWindow() {
 		this.getWindow().setType(
 				WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-		this.getWindow().addFlags(
+		/*this.getWindow().addFlags(
 				WindowManager.LayoutParams.FLAG_FULLSCREEN
 						| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
 						| WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
 						);
-
+		*/
+		
+		this.getWindow().addFlags(
+				WindowManager.LayoutParams.FLAG_FULLSCREEN
+						| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+						| WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+						| WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+						);
+	
 		super.onAttachedToWindow();
+		
+		
 	}
+	
+	
 	
 	public static final String APP_PREFERENCES = "mysettings"; 
 	public static final String APP_PREFERENCES_PIN_PASS = "pin_pass";
@@ -109,8 +128,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	    filtertime.addAction("android.intent.action.TIME_TICK");
 	    registerReceiver(mTimeInfoReceiver, filtertime);
 	    
-	    
-	    
+	
 	    IntentFilter filters = new IntentFilter();
 	    filters.addAction("android.intent.action.BATTERY_CHANGED");
 	    filters.addAction("android.location.PROVIDERS_CHANGED");
@@ -187,13 +205,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				// lock home button
 				lockHomeButton();
 				
-
 				// start service for observing intents
 				startService(new Intent(this, LockscreenService.class));
 				
-				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-
 				// listen the events get fired during the call
 				StateListener phoneStateListener = new StateListener();
 				TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
@@ -255,13 +269,14 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		// Don't finish Activity on Back press
 		@Override
 		public void onBackPressed() {
+			//super.onBackPressed();
 			return;
 		}
 
 		// Handle button clicks
 		@Override
 		public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-
+			
 			if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
 					|| (keyCode == KeyEvent.KEYCODE_POWER)
 					|| (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
@@ -272,9 +287,13 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 				return true;
 			}
+			if ((keyCode == KeyEvent.KEYCODE_FUNCTION)){
+				return true;
+			}
 
 			return false;
 
+			
 		}
 
 		// handle the key press events here itself
@@ -285,6 +304,11 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				return false;
 			}
 			if ((event.getKeyCode() == KeyEvent.KEYCODE_HOME)) {
+
+				return true;
+			}
+			
+			if ((event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)) {
 
 				return true;
 			}
@@ -322,19 +346,22 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 			unlockHomeButton();
 			
 		}
-
+/*
 		public void hiddenInputMethod() {
 
 		    InputMethodManager imm = (InputMethodManager) getSystemService(MainActivity.this.INPUT_METHOD_SERVICE);
 		    if (getCurrentFocus() != null)
 		        imm.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 		}
-		
+		*/
 		@SuppressWarnings("deprecation")
 		private void disableKeyguard() {
 			KeyguardManager mKM = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
 			KeyguardManager.KeyguardLock mKL = mKM.newKeyguardLock("IN");
 			mKL.disableKeyguard();
+			
+			InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+			imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 		}
 
 		@SuppressWarnings("deprecation")
@@ -666,6 +693,8 @@ private BroadcastReceiver mInfoReceiver = new BroadcastReceiver(){
 
 
 };
+
+
 
 
 }

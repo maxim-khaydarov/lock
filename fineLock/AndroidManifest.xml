@@ -34,7 +34,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateAlwaysHidden"
+            android:windowSoftInputMode="stateHidden"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
             <category android:name="android.intent.category.LAUNCHER" />
@@ -62,6 +62,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+         <activity android:name=".StartLock" />
+        
        
         <receiver android:name=".IncomingSms">   
             <intent-filter>

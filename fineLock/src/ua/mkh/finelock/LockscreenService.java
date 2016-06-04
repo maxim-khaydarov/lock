@@ -1,5 +1,6 @@
 package ua.mkh.finelock;
 
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -20,34 +21,34 @@ public class LockscreenService extends Service {
 		return null;
 	}
 
+	
 	@Override
 	public void onCreate() {
-		super.onCreate();
-	}
-	
-	// Register for Lockscreen event intents
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+		KeyguardManager.KeyguardLock k1;
+
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+
+		KeyguardManager km =(KeyguardManager)getSystemService(KEYGUARD_SERVICE);
+		k1= km.newKeyguardLock("IN");
+		k1.disableKeyguard();
+		
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(Intent.ACTION_SCREEN_OFF);
+		filter.addAction(Intent.ACTION_SCREEN_ON);
 		mReceiver = new LockscreenIntentReceiver();
 		registerReceiver(mReceiver, filter);
-		//startForeground();
-		return START_STICKY;
-	}
+		
+		super.onCreate();
 
-	// Run service in foreground so it is less likely to be killed by system
-	private void startForeground() {
-		Notification notification = new NotificationCompat.Builder(this)
-		 .setContentTitle(getResources().getString(R.string.app_name))
-		 .setTicker(getResources().getString(R.string.app_name))
-		 .setContentText("Running")
-		 .setSmallIcon(R.drawable.ic_launcher)
-		 .setContentIntent(null)
-		 .setOngoing(true)
-		 .build();
-		 startForeground(9999,notification);		
 	}
+	
+	@Override
+    public void onStart(Intent intent, int startId) {
+          // TODO Auto-generated method stub
+          super.onStart(intent, startId);
+}
+
+	
 
 	// Unregister receiver
 	@Override
